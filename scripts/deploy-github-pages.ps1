@@ -1,15 +1,16 @@
 $ErrorActionPreference = "Stop"
 
 param(
-  [string]$Owner = "newwhy2",
+  [string]$Owner = "buddhababe",
   [string]$Repo = "hyo-life-os",
   [switch]$Private
 )
 
 $root = Split-Path -Parent $PSScriptRoot
-$repoFullName = "$Owner/$Repo"
 
 Set-Location $root
+
+$repoFullName = "$Owner/$Repo"
 
 Write-Host "Hyo Life OS GitHub Pages deploy"
 Write-Host "Root: $root"

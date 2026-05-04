@@ -56,7 +56,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy-github-pages.ps1
 Expected public URL:
 
 ```text
-https://newwhy2.github.io/hyo-life-os/
+https://buddhababe.github.io/hyo-life-os/
 ```
 
 If `gh auth status` says reauthentication is required, run this in your own terminal first:

@@ -85,5 +85,5 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy-github-pages.ps1
 Expected URL:
 
 ```text
-https://newwhy2.github.io/hyo-life-os/
+https://buddhababe.github.io/hyo-life-os/
 ```

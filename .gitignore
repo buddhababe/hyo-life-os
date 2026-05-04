@@ -2,6 +2,10 @@
 *.log
 *.tmp
 *.bak
+gh-auth.out
+gh-auth.err
+gh-auth-*.out
+gh-auth-*.err
 
 # Backups may contain personal data
 hyo-life-os-*.json
@@ -11,4 +15,3 @@ hyo-life-os-encrypted-*.json
 .DS_Store
 Thumbs.db
 .vscode/
-
