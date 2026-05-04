@@ -1,0 +1,17 @@
+{
+  "name": "Hyo Life OS | 위효연",
+  "short_name": "Hyo Life OS",
+  "description": "과학적 자기개선과 사주명리·불교 기반 개운을 결합한 오프라인 PWA.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#101418",
+  "theme_color": "#101418",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

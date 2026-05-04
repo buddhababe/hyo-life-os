@@ -1,0 +1,14 @@
+# Local artifacts
+*.log
+*.tmp
+*.bak
+
+# Backups may contain personal data
+hyo-life-os-*.json
+hyo-life-os-encrypted-*.json
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+
