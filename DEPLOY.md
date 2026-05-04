@@ -45,6 +45,28 @@ Important files:
 
 If this folder is used as a standalone repository, the included GitHub Actions workflow can deploy it to GitHub Pages automatically after pushing to `main`.
 
+## One-Command Deploy After GitHub Login
+
+If GitHub CLI is authenticated:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy-github-pages.ps1
+```
+
+Expected public URL:
+
+```text
+https://newwhy2.github.io/hyo-life-os/
+```
+
+If `gh auth status` says reauthentication is required, run this in your own terminal first:
+
+```powershell
+gh auth login -h github.com
+```
+
+Then rerun the deploy script.
+
 ## Data Sync Model
 
 v1 does not use cloud sync.

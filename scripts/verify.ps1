@@ -13,6 +13,7 @@ $required = @(
   "js/crypto.js",
   "js/auth.js",
   "js/app.js",
+  "scripts/deploy-github-pages.ps1",
   ".nojekyll",
   ".github/workflows/pages.yml"
 )

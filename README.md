@@ -73,3 +73,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\verify.ps1
 ```
 
 The verifier checks required PWA files, manifest parsing, service worker cache coverage, and sensitive public-support terms.
+
+## Deploy To GitHub Pages
+
+After GitHub CLI login:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy-github-pages.ps1
+```
+
+Expected URL:
+
+```text
+https://newwhy2.github.io/hyo-life-os/
+```
