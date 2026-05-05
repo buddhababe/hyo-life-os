@@ -32,9 +32,8 @@
     $("#authTitle").textContent = hasLock ? "앱 잠금 해제" : "앱 잠금 설정";
     $("#authDescription").textContent = hasLock
       ? "이 기기의 Life OS 데이터를 보려면 4자리 PIN을 입력한다."
-      : "공개 URL로 쓰려면 이 기기용 4자리 PIN을 설정하는 것이 안전하다.";
+      : "처음 사용하려면 이 기기용 4자리 PIN을 먼저 설정한다.";
     $("#authPrimaryBtn").textContent = hasLock ? "해제" : "PIN 설정";
-    $("#authSkipBtn").hidden = hasLock;
     $("#authPassphrase").value = "";
     $("#authError").textContent = "";
     if (mode === "lock") {
@@ -733,10 +732,6 @@ ${habitLines}
         handleAuthPrimary();
       }
     });
-    $("#authSkipBtn").addEventListener("click", () => {
-      sessionStorage.setItem("hyo-life-os-unlocked-v1", "true");
-      hideAuthOverlay();
-    });
     $("#lockNowBtn").addEventListener("click", () => {
       window.LifeAuth.lockNow();
       showAuthOverlay("lock");
@@ -992,8 +987,6 @@ ${habitLines}
   renderAll();
   updateLockStatus();
   if (!window.LifeAuth.isUnlocked()) {
-    showAuthOverlay();
-  } else if (!window.LifeAuth.hasLock() && sessionStorage.getItem("hyo-life-os-unlocked-v1") !== "true") {
     showAuthOverlay();
   }
   registerServiceWorker();

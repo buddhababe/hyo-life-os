@@ -61,7 +61,7 @@ http://127.0.0.1:5183/
 
 ## Isolation
 
-- Service worker cache: `hyo-life-os-v1-6`
+- Service worker cache: `hyo-life-os-v1-7`
 - localStorage key: `hyo-life-os-state-v1`
 - Suggested dev port: `5183`
 - App lock key: `hyo-life-os-lock-v1`

@@ -16,7 +16,7 @@ http://127.0.0.1:5183/
 
 - `index.html` responds on port `5183`.
 - Manifest parses as JSON.
-- Service worker cache is isolated as `hyo-life-os-v1-6`.
+- Service worker cache is isolated as `hyo-life-os-v1-7`.
 - localStorage key is isolated as `hyo-life-os-state-v1`.
 
 ## Implemented v1.1

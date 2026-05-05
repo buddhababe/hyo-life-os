@@ -43,7 +43,7 @@
   }
 
   function isUnlocked() {
-    return !hasLock() || sessionStorage.getItem(SESSION_KEY) === "true";
+    return hasLock() && sessionStorage.getItem(SESSION_KEY) === "true";
   }
 
   function isValidPin(pin) {
