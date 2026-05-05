@@ -5,6 +5,7 @@
 - Active project folder: `hyo-life-os/`
 - Do not edit: `life-os/`
 - Do not rely on UUID-folder implementation plans as app source of truth; they may belong to another workflow.
+- LLM handoff docs are now part of the repo: `AGENTS.md`, `docs/HANDOFF.md`, `docs/DECISIONS.md`.
 
 ## Current URL
 
@@ -44,6 +45,7 @@ http://127.0.0.1:5183/
 - GitHub Pages workflow for public access.
 - Verification and serve scripts.
 - Security notes and deployment checklist.
+- GitHub handoff instructions for future LLM/developer continuation.
 - Mandarat / Ikigai / Napoleon Hill side modules.
 - Saju and Buddhist dashboard.
 - ChatGPT Markdown export.

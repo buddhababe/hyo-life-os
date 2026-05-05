@@ -8,6 +8,19 @@
 - `life-os/`는 다른 LLM 또는 다른 작업과 충돌할 수 있으므로 더 이상 수정하지 않습니다.
 - UUID 폴더의 문서들은 참조 자료입니다. 앱 구현 파일은 이 폴더 안에서만 관리합니다.
 
+## LLM Handoff
+
+다른 컴퓨터나 다른 LLM이 이어받을 때는 GitHub repo를 clone한 뒤 아래 순서로 읽게 합니다.
+
+1. `AGENTS.md`
+2. `README.md`
+3. `STATUS.md`
+4. `LIVE_METHOD_MONITOR.md`
+5. `docs/HANDOFF.md`
+6. `docs/DECISIONS.md`
+
+공개 repo에는 개발에 필요한 지침만 둡니다. 개인 입력 기록과 민감한 세부 맥락은 앱의 로컬 저장소 또는 암호화 백업으로 관리합니다.
+
 ## Run
 
 ```powershell

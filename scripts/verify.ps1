@@ -3,8 +3,11 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $required = @(
   "index.html",
+  "AGENTS.md",
   "manifest.json",
   "sw.js",
+  "docs/HANDOFF.md",
+  "docs/DECISIONS.md",
   "assets/icon.svg",
   "css/style.css",
   "js/data.js",
