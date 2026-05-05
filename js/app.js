@@ -15,13 +15,52 @@
       .replaceAll("'", "&#039;");
   }
 
-  function saveAndRender() {
+  function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function saveOnly() {
     window.LifeStorage.saveState(state);
+  }
+
+  function saveAndRender() {
+    saveOnly();
     renderScore();
     renderCoach();
     renderExport();
     renderSettings();
     renderTabAccess();
+  }
+
+  function defaultGrandPlan() {
+    return {
+      northStar: window.LIFE_OS_SEED.profile.mission,
+      tenYear: "법·AI·금융·제도권을 통합한 고유 포지션 구축",
+      oneYear: "학업 마무리, AICPA/CFA/AI 기반, 안정적 현금흐름과 건강 루틴",
+      quarter: "하나의 핵심 시험/기술 트랙을 끝까지 밀고 주간 산출물을 남긴다",
+      month: "수면·공부·운동·기록을 앱에 남기고 목표 난이도를 조정한다",
+      week: "오늘 TOP 3를 매일 완료 가능한 크기로 낮춘다",
+      lastUpdatedAt: null
+    };
+  }
+
+  function ensureStateShape() {
+    state.strategy = {
+      woop: clone(window.LIFE_OS_SEED.woopDefault),
+      lastMethodReviewAt: null,
+      methodReviewCadenceDays: 30,
+      ...(state.strategy || {})
+    };
+    state.strategy.woop = {
+      ...clone(window.LIFE_OS_SEED.woopDefault),
+      ...(state.strategy.woop || {})
+    };
+    entry.flow = {
+      challenge: 3,
+      skill: 3,
+      oneThing: "",
+      ...(entry.flow || {})
+    };
   }
 
   function showAuthOverlay(mode = "unlock") {
@@ -32,7 +71,7 @@
     $("#authTitle").textContent = hasLock ? "앱 잠금 해제" : "앱 잠금 설정";
     $("#authDescription").textContent = hasLock
       ? "이 기기의 Life OS 데이터를 보려면 4자리 PIN을 입력한다."
-      : "처음 사용하려면 이 기기용 4자리 PIN을 먼저 설정한다.";
+      : "처음 사용하려면 이 기기의 4자리 PIN을 먼저 설정한다.";
     $("#authPrimaryBtn").textContent = hasLock ? "해제" : "PIN 설정";
     $("#authPassphrase").value = "";
     $("#authError").textContent = "";
@@ -47,10 +86,25 @@
     document.body.classList.remove("auth-locked");
   }
 
+  async function handleAuthPrimary() {
+    const passphrase = $("#authPassphrase").value;
+    try {
+      if (window.LifeAuth.hasLock()) {
+        await window.LifeAuth.unlock(passphrase);
+      } else {
+        await window.LifeAuth.setLock(passphrase);
+      }
+      hideAuthOverlay();
+      updateLockStatus();
+    } catch (error) {
+      $("#authError").textContent = error.message || "잠금 처리에 실패했습니다.";
+    }
+  }
+
   function updateLockStatus() {
     const status = window.LifeAuth.hasLock()
       ? "앱 잠금 PIN이 설정되어 있다. 브라우저 세션이 끝나면 다시 PIN이 필요하다."
-      : "앱 잠금 PIN이 꺼져 있다. 공개 URL로 쓸 계획이면 PIN을 설정하는 편이 낫다.";
+      : "앱 잠금 PIN이 꺼져 있다. 공개 URL로 쓸 때는 PIN 설정을 권장한다.";
     $("#lockStatus").textContent = status;
   }
 
@@ -68,29 +122,32 @@
     }
   }
 
-  function defaultGrandPlan() {
-    return {
-      northStar: window.LIFE_OS_SEED.profile.mission,
-      tenYear: "법·AI·금융·제도권을 통합한 고유 포지션 구축",
-      oneYear: "학업 마무리, AICPA/CFA/AI 기반, 안정적 현금흐름과 건강 루틴",
-      quarter: "하나의 핵심 시험/기술 트랙을 끝까지 밀고 주간 산출물을 남긴다",
-      month: "수면·공부·운동·기록을 앱에 남기고 목표 난이도를 조정한다",
-      week: "오늘 TOP 3를 매일 완료 가능한 크기로 낮춘다",
-      lastUpdatedAt: null
-    };
+  function elapsedDays(value) {
+    if (!value) return null;
+    const time = new Date(value).getTime();
+    if (Number.isNaN(time)) return null;
+    return Math.max(0, Math.floor((Date.now() - time) / 86400000));
   }
 
   function goalReviewInfo() {
     const cadence = Number(state.settings.goalReviewCadenceDays || 7);
-    if (!state.grandPlan.lastUpdatedAt) {
-      return { due: true, days: null, label: "목표 업데이트 필요" };
-    }
-    const elapsed = Date.now() - new Date(state.grandPlan.lastUpdatedAt).getTime();
-    const days = Math.max(0, Math.floor(elapsed / 86400000));
+    const days = elapsedDays(state.grandPlan.lastUpdatedAt);
+    if (days === null) return { due: true, days: null, label: "목표 업데이트 필요" };
     return {
       due: days >= cadence,
       days,
       label: days >= cadence ? `${days}일 경과: 업데이트 필요` : `${days}일 경과: 유지`
+    };
+  }
+
+  function methodReviewInfo() {
+    const cadence = Number(state.strategy.methodReviewCadenceDays || 30);
+    const days = elapsedDays(state.strategy.lastMethodReviewAt);
+    if (days === null) return { due: true, days: null, label: "방법론 업데이트 필요" };
+    return {
+      due: days >= cadence,
+      days,
+      label: days >= cadence ? `${days}일 경과: 방법론 재검토` : `${days}일 경과: 관찰 유지`
     };
   }
 
@@ -118,42 +175,17 @@
 
   function renderTabAccess() {
     const locked = state.settings.morningFocusLock && !entry.morning.done;
-    const lockedTabs = new Set(["feedback", "grand", "saju"]);
+    const lockedTabs = new Set(["strategy", "evolve"]);
     $$(".tab").forEach((tab) => {
       const isLocked = locked && lockedTabs.has(tab.dataset.tab);
       tab.disabled = isLocked;
       tab.classList.toggle("is-locked", isLocked);
-      tab.title = isLocked ? "아침 60초 체크 후 열린다." : "";
+      tab.title = isLocked ? "아침 60초 체크 후 열림" : "";
     });
     const active = $(".tab.is-active");
     if (active && active.disabled) {
-      activateTab("command");
+      activateTab("today");
     }
-  }
-
-  async function handleAuthPrimary() {
-    const passphrase = $("#authPassphrase").value;
-    try {
-      if (window.LifeAuth.hasLock()) {
-        await window.LifeAuth.unlock(passphrase);
-      } else {
-        await window.LifeAuth.setLock(passphrase);
-      }
-      hideAuthOverlay();
-      updateLockStatus();
-    } catch (error) {
-      $("#authError").textContent = error.message || "잠금 처리에 실패했다.";
-    }
-  }
-
-  function setDeep(path, value) {
-    const keys = path.split(".");
-    let target = entry;
-    keys.slice(0, -1).forEach((key) => {
-      target = target[key];
-    });
-    target[keys[keys.length - 1]] = value;
-    saveAndRender();
   }
 
   function renderDate() {
@@ -164,9 +196,142 @@
       day: "numeric",
       weekday: "short"
     });
+    $("#riskBadge").textContent = window.LIFE_OS_SEED.profile.currentFrame;
     const reminders = window.LIFE_OS_SEED.reminders;
-    const pick = Math.abs(today.split("-").join("")) % reminders.length;
+    const pick = Math.abs(Number(today.split("-").join(""))) % reminders.length;
     $("#dailyReminder").textContent = reminders[pick];
+  }
+
+  function renderRadar() {
+    const methodInfo = methodReviewInfo();
+    $("#methodStatus").textContent = methodInfo.label;
+    $("#methodStatus").classList.toggle("is-due", methodInfo.due);
+    $("#radarSignalList").innerHTML = window.LIFE_OS_SEED.radarSignals
+      .map(
+        (item) => `
+          <div class="signal-card">
+            <small>${escapeHtml(item.cadence)}</small>
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>${escapeHtml(item.signal)}</span>
+            <b>${escapeHtml(item.action)}</b>
+          </div>
+        `
+      )
+      .join("");
+    $("#methodRadarList").innerHTML = window.LIFE_OS_SEED.methodRadar
+      .map(
+        (item) => `
+          <div class="mini-block">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>${escapeHtml(item.sources)}</span>
+            <span>${escapeHtml(item.output)}</span>
+          </div>
+        `
+      )
+      .join("");
+    $("#ideaPipeline").innerHTML = window.LIFE_OS_SEED.ideaPipeline
+      .map(
+        (column) => `
+          <div class="kanban-col">
+            <h4>${escapeHtml(column.stage)}</h4>
+            ${column.items.map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
+          </div>
+        `
+      )
+      .join("");
+    $("#skillForge").innerHTML = window.LIFE_OS_SEED.skillForge
+      .map(
+        (skill) => `
+          <div class="skill-row">
+            <strong>${escapeHtml(skill.name)}</strong>
+            <span>
+              <div class="progress"><span style="width:${skill.level}%"></span></div>
+              <small>${skill.level}% · ${escapeHtml(skill.next)}</small>
+            </span>
+          </div>
+        `
+      )
+      .join("");
+  }
+
+  function renderVision() {
+    $("#ikigaiMap").innerHTML = window.LIFE_OS_SEED.ikigai
+      .map(
+        ([title, body]) => `
+          <div class="ikigai-card">
+            <b>${escapeHtml(title)}</b>
+            <span>${escapeHtml(body)}</span>
+          </div>
+        `
+      )
+      .join("");
+    $("#transurfingList").innerHTML = window.LIFE_OS_SEED.transurfing
+      .map((item) => `<div class="mini-block"><span>${escapeHtml(item)}</span></div>`)
+      .join("");
+    $("#doctrineList").innerHTML = window.LIFE_OS_SEED.profile.operatingDoctrine
+      .map((item, index) => `<div class="mini-block"><strong>${index + 1}</strong><span>${escapeHtml(item)}</span></div>`)
+      .join("");
+  }
+
+  function renderStrategy() {
+    const info = goalReviewInfo();
+    $("#goalReviewStatus").textContent = info.label;
+    $("#grandPlanSnapshot").innerHTML = [
+      ["North Star", state.grandPlan.northStar],
+      ["10년", state.grandPlan.tenYear],
+      ["1년", state.grandPlan.oneYear],
+      ["분기", state.grandPlan.quarter],
+      ["이번 달", state.grandPlan.month],
+      ["이번 주", state.grandPlan.week]
+    ]
+      .map(
+        ([title, body]) => `
+          <div class="goal-card">
+            <strong>${escapeHtml(title)}</strong>
+            <span>${escapeHtml(body || "비어 있음")}</span>
+          </div>
+        `
+      )
+      .join("");
+
+    $("#woopWish").value = state.strategy.woop.wish || "";
+    $("#woopOutcome").value = state.strategy.woop.outcome || "";
+    $("#woopObstacle").value = state.strategy.woop.obstacle || "";
+    $("#woopPlan").value = state.strategy.woop.plan || "";
+
+    $("#mandaratGrid").innerHTML = window.LIFE_OS_SEED.mandarat
+      .map(
+        (cell) => `
+          <div class="mandarat-cell ${cell.title === "The One" ? "is-center" : ""}">
+            <strong>${escapeHtml(cell.title)}</strong>
+            <span>${cell.items.map(escapeHtml).join(" · ")}</span>
+          </div>
+        `
+      )
+      .join("");
+
+    $("#gaeunList").innerHTML = window.LIFE_OS_SEED.gaeunPriorities
+      .map(
+        (item) => `
+          <div class="rank-row">
+            <b>${item.rank}</b>
+            <span><strong>${escapeHtml(item.title)} · ${item.weight}%</strong><small>${escapeHtml(item.action)}</small></span>
+            <meter min="0" max="30" value="${item.weight}"></meter>
+          </div>
+        `
+      )
+      .join("");
+
+    $("#resourceList").innerHTML = window.LIFE_OS_SEED.residenceCareer
+      .map(
+        (item) => `
+          <div class="constraint-item">
+            <strong>${escapeHtml(item.title)}</strong>
+            <ul>${item.bullets.map((bullet) => `<li>${escapeHtml(bullet)}</li>`).join("")}</ul>
+          </div>
+        `
+      )
+      .join("");
   }
 
   function renderScore() {
@@ -180,7 +345,7 @@
   }
 
   function renderMorningGate() {
-    $("#morningStatus").textContent = entry.morning.done ? "완료" : "잠금 해제 전";
+    $("#morningStatus").textContent = entry.morning.done ? "완료" : "시작 전";
     $("#morningGate").classList.toggle("is-complete", entry.morning.done);
     $("#morningGateBody").innerHTML = `
       <label class="range-row">
@@ -189,13 +354,13 @@
       </label>
       <label class="field-label">
         오늘 모드
-        <select class="text-input" id="morningMode">
+        <select id="morningMode">
           ${["방어", "전진", "회복"].map((mode) => `<option value="${mode}" ${entry.morning.mode === mode ? "selected" : ""}>${mode}</option>`).join("")}
         </select>
       </label>
       <label class="field-label">
         오늘의 한 문장
-        <input class="text-input" id="morningPledge" value="${escapeHtml(entry.morning.pledge)}" placeholder="예: 오전 10시에 AICPA 25분만 한다">
+        <input class="text-input" id="morningPledge" value="${escapeHtml(entry.morning.pledge)}" placeholder="예: 오전 10시에 FAR 25분만 한다">
       </label>
       <button class="primary-btn" id="completeMorningBtn">${entry.morning.done ? "체크인 수정 완료" : "체크인 완료"}</button>
     `;
@@ -210,22 +375,21 @@
     });
     $("#morningPledge").addEventListener("input", (event) => {
       entry.morning.pledge = event.target.value;
-      saveAndRender();
+      saveOnly();
     });
     $("#completeMorningBtn").addEventListener("click", () => {
       entry.morning.done = true;
       if (!entry.morning.pledge.trim()) {
         entry.morning.pledge = "오늘 TOP 3 중 하나를 2분 버전으로 시작한다.";
       }
-      window.LifeStorage.saveState(state);
+      saveOnly();
       renderMorningGate();
       saveAndRender();
     });
   }
 
   function renderMissions() {
-    const list = $("#missionList");
-    list.innerHTML = entry.missions
+    $("#missionList").innerHTML = entry.missions
       .map(
         (mission, index) => `
           <div class="mission-row">
@@ -254,37 +418,28 @@
       input.addEventListener("input", (event) => {
         const [index, field] = event.target.dataset.missionField.split(".");
         entry.missions[Number(index)][field] = event.target.value;
-        saveAndRender();
+        saveOnly();
+        renderCoach();
+        renderExport();
       });
     });
   }
 
   function renderHabits() {
-    const list = $("#habitList");
     const coreHabits = window.LIFE_OS_SEED.habits.filter((habit) =>
       window.LIFE_OS_SEED.coreHabitIds.includes(habit.id)
     );
     const guardrailHabits = window.LIFE_OS_SEED.habits.filter((habit) =>
       window.LIFE_OS_SEED.guardrailHabitIds.includes(habit.id)
     );
-    list.innerHTML = coreHabits
+
+    $("#habitList").innerHTML = coreHabits
       .map((habit) => {
         const target = state.settings.targets[habit.id] || habit.target;
         const value = entry.habits[habit.id];
         const completion = Math.round(
           window.LifeEvolution.habitCompletion(entry, habit, state.settings.targets) * 100
         );
-        if (habit.type === "checkbox") {
-          return `
-            <label class="habit-row">
-              <span>
-                <strong>${escapeHtml(habit.label)}</strong>
-                <small>${completion}%</small>
-              </span>
-              <input type="checkbox" data-habit-check="${habit.id}" ${value ? "checked" : ""}>
-            </label>
-          `;
-        }
         return `
           <label class="habit-row">
             <span>
@@ -296,6 +451,7 @@
         `;
       })
       .join("");
+
     $("#guardrailList").innerHTML = guardrailHabits
       .map((habit) => {
         const value = entry.habits[habit.id];
@@ -325,21 +481,101 @@
     });
   }
 
+  function flowMessage() {
+    const challenge = Number(entry.flow.challenge || 3);
+    const skill = Number(entry.flow.skill || 3);
+    if (challenge >= 4 && skill >= 4) return "몰입권: 오늘의 #1을 45분 블록으로 밀어도 된다.";
+    if (challenge >= 4 && skill <= 2) return "불안권: 미션을 30-50% 줄이고 첫 행동만 한다.";
+    if (challenge <= 2 && skill >= 4) return "지루함: 난이도를 10% 올리거나 산출물을 명확히 한다.";
+    if (challenge <= 2 && skill <= 2) return "무기력: 회복, 정리, 2분 행동으로 진입한다.";
+    return "균형권: 계획대로 진행하되 과열 체크를 유지한다.";
+  }
+
+  function renderFlow() {
+    const message = flowMessage();
+    $("#flowStatus").textContent = message.split(":")[0];
+    $("#flowMatrix").innerHTML = `
+      <div class="flow-grid">
+        <label class="range-row">
+          <span>난이도 <b id="challengeValue">${entry.flow.challenge}</b></span>
+          <input type="range" min="1" max="5" step="1" id="flowChallenge" value="${entry.flow.challenge}">
+        </label>
+        <label class="range-row">
+          <span>실력/컨디션 <b id="skillValue">${entry.flow.skill}</b></span>
+          <input type="range" min="1" max="5" step="1" id="flowSkill" value="${entry.flow.skill}">
+        </label>
+      </div>
+      <div class="flow-state">${escapeHtml(message)}</div>
+      <label class="field-label">
+        오늘의 #1 행동
+        <input class="text-input" id="flowOneThing" value="${escapeHtml(entry.flow.oneThing)}" placeholder="끝낼 수 있는 단 하나">
+      </label>
+    `;
+    $("#flowChallenge").addEventListener("input", (event) => {
+      entry.flow.challenge = Number(event.target.value);
+      saveOnly();
+      renderFlow();
+      renderCoach();
+    });
+    $("#flowSkill").addEventListener("input", (event) => {
+      entry.flow.skill = Number(event.target.value);
+      saveOnly();
+      renderFlow();
+      renderCoach();
+    });
+    $("#flowOneThing").addEventListener("input", (event) => {
+      entry.flow.oneThing = event.target.value;
+      saveOnly();
+      renderExport();
+    });
+  }
+
+  function renderBuddhist() {
+    const sliders = [
+      ["greed", "탐욕"],
+      ["anger", "분노"],
+      ["delusion", "혼란"]
+    ];
+    $("#buddhistLog").innerHTML = `
+      ${sliders
+        .map(
+          ([key, label]) => `
+            <label class="range-row">
+              <span>${label}<b id="${key}Value">${entry.buddhist[key]}</b></span>
+              <input type="range" min="0" max="3" step="1" data-buddhist-range="${key}" value="${entry.buddhist[key]}">
+            </label>
+          `
+        )
+        .join("")}
+      <label class="habit-row"><span><strong>과열</strong><small>말, 밤샘, 노출, 충동이 올라옴</small></span><input type="checkbox" data-buddhist-check="overheated" ${entry.buddhist.overheated ? "checked" : ""}></label>
+      <label class="habit-row"><span><strong>집착</strong><small>결과·타인평가·돈에 과하게 붙음</small></span><input type="checkbox" data-buddhist-check="attachment" ${entry.buddhist.attachment ? "checked" : ""}></label>
+    `;
+    $$("[data-buddhist-range]").forEach((input) => {
+      input.addEventListener("input", (event) => {
+        const key = event.target.dataset.buddhistRange;
+        entry.buddhist[key] = Number(event.target.value);
+        $(`#${key}Value`).textContent = event.target.value;
+        saveAndRender();
+      });
+    });
+    $$("[data-buddhist-check]").forEach((input) => {
+      input.addEventListener("change", (event) => {
+        entry.buddhist[event.target.dataset.buddhistCheck] = event.target.checked;
+        saveAndRender();
+      });
+    });
+  }
+
   function renderJournal() {
     const oneQuestion = state.settings.oneQuestionJournal;
     $("#journalMode").textContent = oneQuestion ? "1문항" : "3문항";
     $("#journalTitle").textContent = oneQuestion ? "초소형 저널" : "60초 저널";
     const fields = oneQuestion
-      ? [
-          {
-            key: "oneLine",
-            label: "오늘 The One에 가까워진 행동 하나만 적는다"
-          }
-        ]
+      ? [{ key: "oneLine", label: "오늘 The One에 가까워진 행동 하나만 적는다면?" }]
       : [
           { key: "forward", label: "오늘 The One에 가까워진 행동 1가지" },
-          { key: "overheat", label: "오늘 과열·집착·재극인 행동" },
-          { key: "tomorrow", label: "내일 한 가지만 바꾼다면" }
+          { key: "overheat", label: "오늘 과열·집착·흐림이 생긴 행동" },
+          { key: "tomorrow", label: "내일 딱 한 가지만 바꾼다면" }
         ];
 
     $("#journalFields").innerHTML = fields
@@ -356,7 +592,8 @@
     $$("[data-journal]").forEach((input) => {
       input.addEventListener("input", (event) => {
         entry.journal[event.target.dataset.journal] = event.target.value;
-        saveAndRender();
+        saveOnly();
+        renderExport();
       });
     });
   }
@@ -369,18 +606,18 @@
       : "아침 게이트가 비어 있다. 먼저 60초 체크인으로 오늘의 마찰을 낮춘다.";
     const science = firstOpenMission
       ? `가장 작은 실행: ${firstOpenMission.ifWhen}에 ${firstOpenMission.ifWhere}에서 "${firstOpenMission.ifAction}"만 한다.`
-      : "오늘 TOP 3는 완료됐다. 새 목표를 추가하지 말고 기록과 회복으로 마감한다.";
+      : "오늘 TOP 3가 완료됐다. 목표를 추가하지 말고 기록과 회복으로 마감한다.";
     const gaeun = entry.habits.waterGold
-      ? "水金 보강은 체크됐다. 다음은 과열 회피를 유지한다."
+      ? "水金 보강은 체크됐다. 다음은 火土 과열 회피를 유지한다."
       : "水金 보강: 물, 문서, 리서치, 법·회계·데이터 정리 중 하나를 10분만 한다.";
     const buddhist =
       Number(entry.buddhist.greed) + Number(entry.buddhist.anger) + Number(entry.buddhist.delusion) >= 5
-        ? "탐·진·치가 높다. 오늘의 전략은 전진보다 정념, 호흡, 말 줄이기다."
+        ? "탐·진·치가 높다. 오늘의 전략은 공격보다 회복, 정리, 말 줄이기다."
         : "탐·진·치가 관리권 안에 있다. 작게 전진한다.";
-    const reviewInfo = goalReviewInfo();
-    const goalReview = reviewInfo.due
-      ? "목표 업데이트 주기가 왔다. 설정 탭의 Grand Plan 수정 질문을 복사해서 다음 대화에 붙여라."
-      : `목표 업데이트는 아직 유지 구간이다. ${reviewInfo.label}.`;
+    const flow = flowMessage();
+    const goalReview = goalReviewInfo().due
+      ? "목표 업데이트 주기가 왔다. Evolve 탭의 Grand Plan 질문을 복사해 다음 대화에 붙여라."
+      : `목표 업데이트는 아직 유지 구간이다. ${goalReviewInfo().label}.`;
 
     $("#coachBrief").innerHTML = `
       ${warnings.map((warning) => `<p class="warning">${escapeHtml(warning)}</p>`).join("")}
@@ -388,7 +625,8 @@
       <p><strong>과학 코치</strong><br>${escapeHtml(science)}</p>
       <p><strong>개운 코치</strong><br>${escapeHtml(gaeun)}</p>
       <p><strong>불교 코치</strong><br>${escapeHtml(buddhist)}</p>
-      <p><strong>업데이트 코치</strong><br>${escapeHtml(goalReview)}</p>
+      <p><strong>Flow</strong><br>${escapeHtml(flow)}</p>
+      <p><strong>업데이트</strong><br>${escapeHtml(goalReview)}</p>
     `;
   }
 
@@ -415,14 +653,14 @@
             return `<div class="trend-bar" title="${item.date}: ${score}"><span style="height:${Math.max(8, score)}%"></span><small>${item.date.slice(5)}</small></div>`;
           })
           .join("")
-      : "<p class=\"muted\">아직 추세 데이터가 없다.</p>";
+      : '<p class="muted">아직 추세 데이터가 없다.</p>';
     $("#adjustmentLog").innerHTML = state.adjustments.length
       ? state.adjustments
           .slice(-8)
           .reverse()
           .map(
             (item) =>
-              `<p><strong>${escapeHtml(item.habit)}</strong>: ${escapeHtml(item.before)} -> ${escapeHtml(item.after)}<br><span>${escapeHtml(item.reason)}</span></p>`
+              `<p><strong>${escapeHtml(item.habit)}</strong>: ${escapeHtml(item.before)} → ${escapeHtml(item.after)}<br><span>${escapeHtml(item.reason)}</span></p>`
           )
           .join("")
       : "<p>아직 자동 조정 기록이 없다. 3일 이상 입력하면 시스템이 움직이기 시작한다.</p>";
@@ -430,95 +668,16 @@
     $("#sciencePrinciples").innerHTML = window.LIFE_OS_SEED.sciencePrinciples
       .map((item) => `<li><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.rule)}</span></li>`)
       .join("");
-  }
 
-  function renderGrandPlan() {
-    const info = goalReviewInfo();
-    $("#goalReviewStatus").textContent = info.label;
-    $("#grandPlanSnapshot").innerHTML = [
-      ["North Star", state.grandPlan.northStar],
-      ["10년", state.grandPlan.tenYear],
-      ["1년", state.grandPlan.oneYear],
-      ["분기", state.grandPlan.quarter],
-      ["이번 달", state.grandPlan.month],
-      ["이번 주", state.grandPlan.week]
-    ]
-      .map(
-        ([title, body]) => `
-          <div class="goal-card">
-            <strong>${escapeHtml(title)}</strong>
-            <span>${escapeHtml(body || "비어 있음")}</span>
-          </div>
-        `
-      )
-      .join("");
-
-    $("#mandaratGrid").innerHTML = window.LIFE_OS_SEED.mandarat
-      .map(
-        (cell) => `
-          <div class="mandarat-cell ${cell.title === "The One" ? "is-center" : ""}">
-            <strong>${escapeHtml(cell.title)}</strong>
-            <span>${cell.items.map(escapeHtml).join(" · ")}</span>
-          </div>
-        `
-      )
-      .join("");
-    $("#ikigaiList").innerHTML = window.LIFE_OS_SEED.ikigai
-      .map(([title, body]) => `<div class="mini-block"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(body)}</span></div>`)
-      .join("");
-    $("#hillModule").innerHTML = window.LIFE_OS_SEED.hill
-      .map((item) => `<div class="mini-block"><span>${escapeHtml(item)}</span></div>`)
-      .join("");
-  }
-
-  function renderSaju() {
-    $("#gaeunList").innerHTML = window.LIFE_OS_SEED.gaeunPriorities
+    $("#daewoonTimeline").innerHTML = window.LIFE_OS_SEED.daewoonTimeline
       .map(
         (item) => `
-          <div class="rank-row">
-            <b>${item.rank}</b>
-            <span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.action)}</small></span>
+          <div class="timeline-item">
+            <b>${escapeHtml(item.title)}</b>
+            <span><strong>${escapeHtml(item.years)}</strong><br>${escapeHtml(item.note)}</span>
           </div>
         `
       )
-      .join("");
-
-    const sliders = [
-      ["greed", "탐욕"],
-      ["anger", "분노"],
-      ["delusion", "혼란"]
-    ];
-    $("#buddhistLog").innerHTML = `
-      ${sliders
-        .map(
-          ([key, label]) => `
-            <label class="range-row">
-              <span>${label}<b id="${key}Value">${entry.buddhist[key]}</b></span>
-              <input type="range" min="0" max="3" step="1" data-buddhist-range="${key}" value="${entry.buddhist[key]}">
-            </label>
-          `
-        )
-        .join("")}
-      <label class="habit-row"><span><strong>과열됨</strong><small>말·투자·감정 속도 과다</small></span><input type="checkbox" data-buddhist-check="overheated" ${entry.buddhist.overheated ? "checked" : ""}></label>
-      <label class="habit-row"><span><strong>집착함</strong><small>결과·돈·인정에 과하게 붙음</small></span><input type="checkbox" data-buddhist-check="attachment" ${entry.buddhist.attachment ? "checked" : ""}></label>
-    `;
-    $$("[data-buddhist-range]").forEach((input) => {
-      input.addEventListener("input", (event) => {
-        const key = event.target.dataset.buddhistRange;
-        entry.buddhist[key] = Number(event.target.value);
-        $(`#${key}Value`).textContent = event.target.value;
-        saveAndRender();
-      });
-    });
-    $$("[data-buddhist-check]").forEach((input) => {
-      input.addEventListener("change", (event) => {
-        entry.buddhist[event.target.dataset.buddhistCheck] = event.target.checked;
-        saveAndRender();
-      });
-    });
-
-    $("#resourceList").innerHTML = (window.LIFE_OS_SEED.profile.resourceLevers || window.LIFE_OS_SEED.profile.constraints || [])
-      .map((item) => `<div class="constraint-item">${escapeHtml(item)}</div>`)
       .join("");
   }
 
@@ -547,8 +706,8 @@
 - 사용자: ${window.LIFE_OS_SEED.profile.name}
 - 날짜: ${today}
 - 톤: ${window.LIFE_OS_SEED.profile.coachTone}
-- 핵심: 과학적 자기개선 + 사주명리·불교 듀얼코어
-- 아침 게이트: ${entry.morning.done ? `${entry.morning.mode}, 에너지 ${entry.morning.energy}/5, ${entry.morning.pledge}` : "미완료"}
+- 듀얼코어: 과학적 자기개선 + 명리·불교 기반 개운
+- 현재 프레임: ${window.LIFE_OS_SEED.profile.currentFrame}
 
 ## Grand Plan
 - North Star: ${state.grandPlan.northStar}
@@ -557,10 +716,21 @@
 - 이번 주: ${state.grandPlan.week}
 - 목표 업데이트 상태: ${goalReviewInfo().label}
 
+## Method Radar
+- 방법론 업데이트 상태: ${methodReviewInfo().label}
+- 이번 주 외부 감지: AI 자동화, 법·규제, 금리·신용, 명리 리스크
+
+## WOOP
+- Wish: ${state.strategy.woop.wish}
+- Outcome: ${state.strategy.woop.outcome}
+- Obstacle: ${state.strategy.woop.obstacle}
+- Plan: ${state.strategy.woop.plan}
+
 ## Today Score
 - 점수: ${window.LifeEvolution.dailyScore(entry, state.settings.targets, state.settings.oneQuestionJournal)}/100
 - 7일 평균: ${stats.averageScore}/100
 - 경고: ${warnings.length ? warnings.join(" / ") : "없음"}
+- Flow: ${flowMessage()}
 
 ## Top 3
 ${missionLines}
@@ -581,7 +751,30 @@ ${habitLines}
 - 내일 수정: ${entry.journal.tomorrow || "(비어 있음)"}
 
 ## Ask
-냉정한 코치처럼 다음 24시간의 TOP 3와 실패 방지 설계를 제시해줘.`;
+냉정한 코치처럼 다음 24시간의 TOP 3, 실패 방지 설계, 개운 관점의 환경 조정만 제시해줘.`;
+  }
+
+  function generateResearchBrief() {
+    return `# Life OS Method Radar Request
+
+오늘 날짜: ${today}
+대상: 위효연 Life OS
+
+목표:
+1. 과학적으로 효과가 검증된 자기개선 방법 업데이트
+2. 사주명리·불교 기반 개운/수행 프레임 업데이트
+3. Legal-AI, 금융, 퀀트, 제도권 진입 전략 업데이트
+
+검토 기준:
+- 새 방법은 근거, 비용, 실행 난이도, 기존 루틴과의 충돌을 평가한다.
+- 효과가 불확실한 방법은 메인 엔진이 아니라 1주 실험으로만 둔다.
+- 공포를 키우는 명리 해석은 배제하고, 환경설계와 리스크관리 언어로 번역한다.
+
+출력 형식:
+- 유지할 것 3개
+- 버릴 것 3개
+- 1주 실험 3개
+- 앱에 반영할 룰 변경 3개`;
   }
 
   function generateDeployChecklist() {
@@ -593,23 +786,26 @@ ${habitLines}
 
 ## 1. 공개 전
 - 검증 실행: powershell -ExecutionPolicy Bypass -File .\\scripts\\verify.ps1
-- 결과: 민감 표현 없음, PWA 필수 파일 있음, 보안 모듈 캐시됨
+- 민감 표현 없음
+- PWA 필수 파일 있음
 - 현재 앱 잠금: ${lockLine}
 
 ## 2. 배포
-- GitHub Pages, Cloudflare Pages, Netlify 중 하나에 hyo-life-os 폴더 내용을 올린다.
-- 공개되는 것은 앱 코드뿐이다. 개인 기록은 서버가 아니라 각 기기의 브라우저 저장소에 남는다.
+- GitHub Pages URL 접속
+- 첫 실행에서 4자리 PIN 설정
+- 개인 기록은 서버가 아니라 브라우저 저장소에 남음
 
-## 3. 새 기기에서 사용
-- 공개 URL 접속
-- 앱 잠금 설정
-- 기존 데이터를 쓰려면 암호화 백업 파일을 가져온다.
+## 3. 여러 기기
+- 이 기기에서 암호화 백업 생성
+- 다른 기기에서 공개 URL 접속
+- 같은 백업 암호로 복원
 - 마지막 암호화 백업: ${backupLine}
 
-## 4. 주간 운영
-- 매주 1회 암호화 백업
-- 3일 실패하면 목표를 낮추고, 7일 85% 이상이면 목표를 조금 올린다.
-- 큰 결정은 수면, 감정, 과열 점수가 안정적일 때만 처리한다.`;
+## 4. 운영 주기
+- 매일 2분 입력
+- 매주 리뷰 실행
+- 매월 Method Radar 질문 복사 후 최신 방법론 반영
+- 분기마다 Grand Plan 재작성`;
   }
 
   function generateGoalUpdateBrief() {
@@ -635,12 +831,12 @@ ${habitLines}
 - 마지막 목표 업데이트: ${formatDateTime(state.grandPlan.lastUpdatedAt)}
 
 ## 코치에게 요청
-냉정한 코치처럼 아래 순서로 나에게 질문하고, 답을 바탕으로 목표를 업데이트해줘.
+냉정한 코치처럼 나에게 먼저 질문하고, 답을 바탕으로 목표를 업데이트해줘.
 1. 지금 가장 큰 현실 레버리지는 무엇인가?
 2. 이번 주에 버려야 할 목표는 무엇인가?
 3. 30일 안에 측정 가능한 산출물은 무엇인가?
-4. 수면·돈·관계·학업 중 가장 약한 축은 무엇인가?
-5. 사주명리·불교 기준으로 과열 또는 집착이 어디서 생기는가?
+4. 수면·감정·과열 기준으로 줄여야 할 위험은 무엇인가?
+5. 사주명리·불교 기준으로 과열 또는 집착은 어디서 생기는가?
 6. 목표를 30% 줄이면 무엇만 남는가?
 7. 다음 7일 TOP 3는 무엇이어야 하는가?`;
   }
@@ -656,7 +852,7 @@ ${habitLines}
     const lockStatus = window.LifeAuth.hasLock() ? "켜짐" : "꺼짐";
     const lockHint = window.LifeAuth.hasLock()
       ? "공개 URL 사용 시 기기 안의 최소 방어선이 있다."
-      : "공개 URL 사용 전 4자리 PIN 설정 권장.";
+      : "공개 URL 사용 시 4자리 PIN 설정 권장.";
 
     $("#settingsStatus").innerHTML = `
       <div class="setting-card"><small>앱 잠금</small><strong>${escapeHtml(lockStatus)}</strong><span>${escapeHtml(lockHint)}</span></div>
@@ -673,7 +869,7 @@ ${habitLines}
           <label class="target-row">
             <span>
               <strong>${escapeHtml(habit.label)}</strong>
-              <small>허용 범위 ${habit.min}-${habit.max}${escapeHtml(habit.unit)}, 자동 조정 전 수동 기준값</small>
+              <small>허용 범위 ${habit.min}-${habit.max}${escapeHtml(habit.unit)}, 자동 조정 후 수동 기준값</small>
             </span>
             <input class="number-input" type="number" inputmode="decimal" step="${habit.step || 1}" min="${habit.min || 0}" max="${habit.max || ""}" data-target-setting="${habit.id}" value="${escapeHtml(target)}">
           </label>
@@ -690,10 +886,10 @@ ${habitLines}
     const goalFields = [
       ["northStar", "North Star", "궁극 방향"],
       ["tenYear", "10년", "장기 포지션"],
-      ["oneYear", "1년", "올해의 승부"],
+      ["oneYear", "1년", "올해의 돌파"],
       ["quarter", "분기", "이번 분기의 핵심 산출물"],
       ["month", "이번 달", "30일 안에 측정할 결과"],
-      ["week", "이번 주", "다음 7일의 좁은 전선"]
+      ["week", "이번 주", "다음 7일의 좁은 우선순위"]
     ];
     $("#goalEditor").innerHTML = goalFields
       .map(
@@ -710,27 +906,46 @@ ${habitLines}
       input.addEventListener("change", (event) => {
         const habit = window.LIFE_OS_SEED.habits.find((item) => item.id === event.target.dataset.targetSetting);
         state.settings.targets[habit.id] = clampTarget(event.target.value, habit);
-        window.LifeStorage.saveState(state);
+        saveOnly();
         renderAll();
       });
     });
     $$("[data-goal-field]").forEach((input) => {
       input.addEventListener("input", (event) => {
         state.grandPlan[event.target.dataset.goalField] = event.target.value;
-        window.LifeStorage.saveState(state);
-        renderGrandPlan();
+        saveOnly();
+        renderStrategy();
         renderExport();
         $("#goalUpdateBrief").value = generateGoalUpdateBrief();
       });
     });
   }
 
+  function copyText(text, button, label) {
+    const fallback = () => {
+      const area = document.createElement("textarea");
+      area.value = text;
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+    };
+    if (!navigator.clipboard || !navigator.clipboard.writeText) {
+      fallback();
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      button.textContent = "복사됨";
+      setTimeout(() => {
+        button.textContent = label;
+      }, 1200);
+    }).catch(fallback);
+  }
+
   function wireEvents() {
     $("#authPrimaryBtn").addEventListener("click", handleAuthPrimary);
     $("#authPassphrase").addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        handleAuthPrimary();
-      }
+      if (event.key === "Enter") handleAuthPrimary();
     });
     $("#lockNowBtn").addEventListener("click", () => {
       window.LifeAuth.lockNow();
@@ -744,11 +959,38 @@ ${habitLines}
       });
     });
 
+    $("#copyResearchBriefBtn").addEventListener("click", () => {
+      copyText(generateResearchBrief(), $("#copyResearchBriefBtn"), "리서치 질문 복사");
+    });
+
+    $("#markMethodReviewBtn").addEventListener("click", () => {
+      state.strategy.lastMethodReviewAt = new Date().toISOString();
+      saveOnly();
+      renderRadar();
+      renderExport();
+    });
+
+    $("#saveWoopBtn").addEventListener("click", () => {
+      state.strategy.woop = {
+        wish: $("#woopWish").value,
+        outcome: $("#woopOutcome").value,
+        obstacle: $("#woopObstacle").value,
+        plan: $("#woopPlan").value
+      };
+      saveOnly();
+      renderExport();
+      $("#saveWoopBtn").textContent = "저장됨";
+      setTimeout(() => {
+        $("#saveWoopBtn").textContent = "저장";
+      }, 1200);
+    });
+
     $("#seedMissionsBtn").addEventListener("click", () => {
-      entry.missions = JSON.parse(JSON.stringify(window.LIFE_OS_SEED.defaultMissions)).map(
-        (mission) => ({ ...mission, done: false })
-      );
-      window.LifeStorage.saveState(state);
+      entry.missions = clone(window.LIFE_OS_SEED.defaultMissions).map((mission) => ({
+        ...mission,
+        done: false
+      }));
+      saveOnly();
       renderMissions();
       saveAndRender();
     });
@@ -762,21 +1004,14 @@ ${habitLines}
       );
     });
 
-    $("#copyBriefBtn").addEventListener("click", async () => {
+    $("#copyBriefBtn").addEventListener("click", () => {
       renderExport();
-      const text = $("#markdownExport").value;
-      try {
-        await navigator.clipboard.writeText(text);
-        $("#copyBriefBtn").textContent = "복사됨";
-        setTimeout(() => ($("#copyBriefBtn").textContent = "복사"), 1200);
-      } catch {
-        $("#markdownExport").select();
-      }
+      copyText($("#markdownExport").value, $("#copyBriefBtn"), "복사");
     });
 
     $("#downloadJsonBtn").addEventListener("click", () => {
       state.settings.lastPlainBackupAt = new Date().toISOString();
-      window.LifeStorage.saveState(state);
+      saveOnly();
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -792,7 +1027,7 @@ ${habitLines}
       const previousBackupAt = state.settings.lastEncryptedBackupAt;
       try {
         state.settings.lastEncryptedBackupAt = new Date().toISOString();
-        window.LifeStorage.saveState(state);
+        saveOnly();
         const encrypted = await window.LifeCrypto.encryptJson(state, passphrase);
         const blob = new Blob([JSON.stringify(encrypted, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -804,7 +1039,7 @@ ${habitLines}
         renderSettings();
       } catch (error) {
         state.settings.lastEncryptedBackupAt = previousBackupAt;
-        window.LifeStorage.saveState(state);
+        saveOnly();
         renderSettings();
         alert(error.message || "암호화 백업에 실패했습니다.");
       }
@@ -819,7 +1054,7 @@ ${habitLines}
           const imported = JSON.parse(reader.result);
           Object.keys(state).forEach((key) => delete state[key]);
           Object.assign(state, imported);
-          window.LifeStorage.saveState(state);
+          saveOnly();
           window.location.reload();
         } catch {
           alert("JSON을 읽지 못했습니다.");
@@ -839,7 +1074,7 @@ ${habitLines}
           const imported = await window.LifeCrypto.decryptJson(payload, passphrase);
           Object.keys(state).forEach((key) => delete state[key]);
           Object.assign(state, imported);
-          window.LifeStorage.saveState(state);
+          saveOnly();
           window.location.reload();
         } catch (error) {
           alert(error.message || "암호화 백업을 복원하지 못했습니다.");
@@ -889,26 +1124,25 @@ ${habitLines}
       window.LIFE_OS_SEED.habits.forEach((habit) => {
         state.settings.targets[habit.id] = habit.target;
       });
-      window.LifeStorage.saveState(state);
+      saveOnly();
       renderAll();
     });
 
     $("#oneQuestionToggle").addEventListener("change", (event) => {
       state.settings.oneQuestionJournal = event.target.checked;
-      window.LifeStorage.saveState(state);
+      saveOnly();
       renderAll();
     });
 
     $("#morningFocusToggle").addEventListener("change", (event) => {
       state.settings.morningFocusLock = event.target.checked;
-      window.LifeStorage.saveState(state);
+      saveOnly();
       renderAll();
     });
 
     $("#goalCadenceInput").addEventListener("change", (event) => {
-      const value = Math.max(3, Math.min(30, Number(event.target.value || 7)));
-      state.settings.goalReviewCadenceDays = value;
-      window.LifeStorage.saveState(state);
+      state.settings.goalReviewCadenceDays = Math.max(3, Math.min(30, Number(event.target.value || 7)));
+      saveOnly();
       renderAll();
     });
 
@@ -922,7 +1156,7 @@ ${habitLines}
         quarter: state.grandPlan.quarter,
         week: state.grandPlan.week
       });
-      window.LifeStorage.saveState(state);
+      saveOnly();
       renderAll();
     });
 
@@ -930,46 +1164,37 @@ ${habitLines}
       const ok = confirm("Grand Plan을 기본값으로 되돌릴까요?");
       if (!ok) return;
       state.grandPlan = defaultGrandPlan();
-      window.LifeStorage.saveState(state);
+      saveOnly();
       renderAll();
     });
 
-    $("#copyGoalUpdateBriefBtn").addEventListener("click", async () => {
+    $("#copyGoalUpdateBriefBtn").addEventListener("click", () => {
       const text = generateGoalUpdateBrief();
       $("#goalUpdateBrief").value = text;
-      try {
-        await navigator.clipboard.writeText(text);
-        $("#copyGoalUpdateBriefBtn").textContent = "복사됨";
-        setTimeout(() => ($("#copyGoalUpdateBriefBtn").textContent = "업데이트 질문 복사"), 1200);
-      } catch {
-        $("#goalUpdateBrief").select();
-      }
+      copyText(text, $("#copyGoalUpdateBriefBtn"), "업데이트 질문 복사");
     });
 
-    $("#copyDeployChecklistBtn").addEventListener("click", async () => {
+    $("#copyDeployChecklistBtn").addEventListener("click", () => {
       const text = generateDeployChecklist();
       $("#deployChecklist").value = text;
-      try {
-        await navigator.clipboard.writeText(text);
-        $("#copyDeployChecklistBtn").textContent = "복사됨";
-        setTimeout(() => ($("#copyDeployChecklistBtn").textContent = "체크리스트 복사"), 1200);
-      } catch {
-        $("#deployChecklist").select();
-      }
+      copyText(text, $("#copyDeployChecklistBtn"), "체크리스트 복사");
     });
   }
 
   function renderAll() {
     renderDate();
+    renderRadar();
+    renderVision();
+    renderStrategy();
     renderMorningGate();
     renderScore();
     renderMissions();
     renderHabits();
+    renderFlow();
+    renderBuddhist();
     renderJournal();
     renderCoach();
     renderFeedback();
-    renderGrandPlan();
-    renderSaju();
     renderExport();
     renderSettings();
     renderTabAccess();
@@ -983,6 +1208,7 @@ ${habitLines}
     }
   }
 
+  ensureStateShape();
   wireEvents();
   renderAll();
   updateLockStatus();

@@ -48,20 +48,24 @@ http://127.0.0.1:5183/
 - JSON export/import
 - Encrypted JSON export/import
 - ChatGPT feedback Markdown export
-- Morning Gate
+- 5-stage console: Radar, Vision, Strategy, Today, Evolve
+- Radar: world signals, method monitor, idea sandbox, skill forge
+- Vision: The Slide, Ikigai, importance reduction, operating doctrine
+- Strategy: Grand Plan, WOOP, Mandarat, weighted gaeun priorities
+- Today: Morning Gate, TOP 3, core habits, Flow Matrix, Buddhist log, journal
+- Evolve: weekly review, daewoon timeline, backup/security/settings
 - Core 3 habits + guardrails
 - Weekly trend bars
 - Browser notification permission button
 - Local app lock
-- Settings tab with security status, adaptive target editing, and deploy checklist
+- Evolve surface with security status, adaptive target editing, and deploy checklist
 - Morning focus lock that blocks secondary tabs until the 60-second check-in is done
 - Grand Plan editor with weekly update prompts and copyable review brief
-- Resource frame treats external help as operating leverage, not identity
 - Live Method Monitor architecture document
 
 ## Isolation
 
-- Service worker cache: `hyo-life-os-v1-7`
+- Service worker cache: `hyo-life-os-v1-8`
 - localStorage key: `hyo-life-os-state-v1`
 - Suggested dev port: `5183`
 - App lock key: `hyo-life-os-lock-v1`

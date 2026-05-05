@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#101418">
+    <meta name="theme-color" content="#0b1118">
     <title>Hyo Life OS | 위효연</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
@@ -17,7 +17,7 @@
         <p class="muted" id="authDescription">이 기기의 Life OS 데이터를 보호한다.</p>
         <label class="field-label">
           잠금 PIN
-          <input class="text-input" id="authPassphrase" type="password" inputmode="numeric" autocomplete="current-password" maxlength="4" placeholder="4자리">
+          <input class="text-input pin-input" id="authPassphrase" type="password" inputmode="numeric" autocomplete="current-password" maxlength="4" placeholder="4자리">
         </label>
         <p class="auth-error" id="authError"></p>
         <div class="button-row">
@@ -28,33 +28,205 @@
 
     <div class="app-shell">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">Hyo Life OS Dual Core</p>
-          <h1>오늘의 지휘센터</h1>
+        <div class="brand-block">
+          <p class="eyebrow">Hyo Life OS V4</p>
+          <h1>Grand Strategy Console</h1>
+          <span>과학적 자기개선 + 명리·불교 개운을 하나의 피드백 시스템으로 운용한다.</span>
         </div>
         <div class="top-actions">
-          <button class="ghost-btn" id="lockNowBtn">잠금</button>
-          <button class="ghost-btn" id="notificationBtn">알림</button>
+          <span class="risk-badge" id="riskBadge">-</span>
           <div class="date-chip" id="todayLabel">-</div>
+          <button class="ghost-btn" id="notificationBtn" title="알림">알림</button>
+          <button class="ghost-btn" id="lockNowBtn" title="잠금">잠금</button>
         </div>
       </header>
 
       <nav class="tabs" aria-label="Life OS navigation">
-        <button class="tab is-active" data-tab="command">지휘센터</button>
-        <button class="tab" data-tab="feedback">피드백</button>
-        <button class="tab" data-tab="grand">Grand Plan</button>
-        <button class="tab" data-tab="saju">명리·불교</button>
-        <button class="tab" data-tab="export">내보내기</button>
-        <button class="tab" data-tab="settings">설정</button>
+        <button class="tab is-active" data-tab="radar"><span>감지</span><strong>Radar</strong></button>
+        <button class="tab" data-tab="vision"><span>정렬</span><strong>Vision</strong></button>
+        <button class="tab" data-tab="strategy"><span>설계</span><strong>Strategy</strong></button>
+        <button class="tab" data-tab="today"><span>실행</span><strong>Today</strong></button>
+        <button class="tab" data-tab="evolve"><span>수정</span><strong>Evolve</strong></button>
       </nav>
 
       <main>
-        <section class="view is-active" id="view-command">
+        <section class="view is-active" id="view-radar">
+          <section class="command-hero">
+            <div>
+              <p class="eyebrow">External Sensor</p>
+              <h2>외부 세계를 감지하고, 사업·학습·개운 신호로 변환한다.</h2>
+              <p>정답을 믿는 앱이 아니라, 매주 더 나은 방법을 찾아 자기수정하는 운영체제다.</p>
+            </div>
+            <div class="hero-stack">
+              <span id="methodStatus">방법론 업데이트 대기</span>
+              <button class="primary-btn" id="copyResearchBriefBtn">리서치 질문 복사</button>
+            </div>
+          </section>
+
+          <section class="grid two">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">World Radar</p>
+                  <h3>이번 주 감지할 신호</h3>
+                </div>
+                <span class="status-pill">외부 센서</span>
+              </div>
+              <div id="radarSignalList" class="signal-grid"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Method Monitor</p>
+                  <h3>살아있는 방법론 업데이트</h3>
+                </div>
+                <button class="ghost-btn" id="markMethodReviewBtn">이번 달 검토 완료</button>
+              </div>
+              <div id="methodRadarList" class="stack"></div>
+            </article>
+          </section>
+
+          <section class="grid two">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Idea Sandbox</p>
+                  <h3>사업 아이디어 파이프라인</h3>
+                </div>
+                <span class="status-pill">감지 → 검증 → 실행</span>
+              </div>
+              <div id="ideaPipeline" class="kanban"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Skill Forge</p>
+                  <h3>제도권 진입을 위한 스킬 축</h3>
+                </div>
+                <span class="status-pill">주간 강화</span>
+              </div>
+              <div id="skillForge" class="skill-list"></div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view" id="view-vision">
+          <section class="vision-slide">
+            <p class="eyebrow">The Slide</p>
+            <h2>나는 이미 The One의 방향으로 움직이는 사람이다.</h2>
+            <p id="dailyReminder">생각하지 말고 적는다. 적은 뒤 검증한다. 검증한 뒤 작게 실행한다.</p>
+          </section>
+
+          <section class="grid two">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Ikigai</p>
+                  <h3>목적 정렬</h3>
+                </div>
+                <span class="status-pill">보조 모듈</span>
+              </div>
+              <div id="ikigaiMap" class="ikigai-map"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Dropping Importance</p>
+                  <h3>중요도 낮추기</h3>
+                </div>
+                <span class="status-pill">집착 완화</span>
+              </div>
+              <div id="transurfingList" class="stack"></div>
+            </article>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Operating Doctrine</p>
+                <h3>정체성 운영 원칙</h3>
+              </div>
+              <span class="status-pill">매일 읽기</span>
+            </div>
+            <div id="doctrineList" class="doctrine-grid"></div>
+          </section>
+        </section>
+
+        <section class="view" id="view-strategy">
+          <section class="grid two">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Grand Plan Snapshot</p>
+                  <h3>목표 지도</h3>
+                </div>
+                <span class="status-pill" id="goalReviewStatus">업데이트 대기</span>
+              </div>
+              <div id="grandPlanSnapshot" class="goal-grid"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">WOOP</p>
+                  <h3>이번 주 실행 설계</h3>
+                </div>
+                <button class="primary-btn" id="saveWoopBtn">저장</button>
+              </div>
+              <div class="woop-grid">
+                <label class="field-label">Wish<textarea class="text-area" id="woopWish" rows="3"></textarea></label>
+                <label class="field-label">Outcome<textarea class="text-area" id="woopOutcome" rows="3"></textarea></label>
+                <label class="field-label">Obstacle<textarea class="text-area" id="woopObstacle" rows="3"></textarea></label>
+                <label class="field-label">Plan<textarea class="text-area" id="woopPlan" rows="3"></textarea></label>
+              </div>
+            </article>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Mandarat</p>
+                <h3>The One 9x9 Blueprint</h3>
+              </div>
+              <span class="status-pill">목표 시각화</span>
+            </div>
+            <div id="mandaratGrid" class="mandarat-grid"></div>
+          </section>
+
+          <section class="grid two">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Saju Priority</p>
+                  <h3>개운 우선순위</h3>
+                </div>
+                <span class="status-pill">水金 중심</span>
+              </div>
+              <div id="gaeunList" class="rank-list"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Resource Design</p>
+                  <h3>거주지·직업·사람 기준</h3>
+                </div>
+                <span class="status-pill">상위 개운</span>
+              </div>
+              <div id="resourceList" class="constraint-grid"></div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view" id="view-today">
           <section class="panel morning-gate" id="morningGate">
             <div class="panel-head">
               <div>
                 <p class="eyebrow">Morning Gate</p>
-                <h3>60초 체크인</h3>
+                <h3>오늘 실행 전 60초 체크</h3>
               </div>
               <span class="status-pill" id="morningStatus">잠금 해제 전</span>
             </div>
@@ -63,8 +235,8 @@
 
           <section class="hero-band">
             <div>
-              <p class="eyebrow">The One Reminder</p>
-              <h2 id="dailyReminder">생각하지 말고 적는다. 적은 뒤 검증한다. 검증한 뒤 작게 실행한다.</h2>
+              <p class="eyebrow">Today Command</p>
+              <h2>오늘 반드시 할 일은 세 개가 아니라, 끝낼 수 있는 세 개다.</h2>
             </div>
             <div class="score-dial" aria-label="오늘 점수">
               <span id="todayScore">0</span>
@@ -88,7 +260,7 @@
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Behavior Baseline</p>
-                  <h3>핵심 3습관</h3>
+                  <h3>핵심 습관과 가드레일</h3>
                 </div>
                 <span class="status-pill" id="habitStatus">대기</span>
               </div>
@@ -97,6 +269,30 @@
                 <p class="eyebrow">Guardrails</p>
                 <div id="guardrailList" class="guardrail-list"></div>
               </div>
+            </article>
+          </section>
+
+          <section class="grid two">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Flow Matrix</p>
+                  <h3>난이도와 실력 조정</h3>
+                </div>
+                <span class="status-pill" id="flowStatus">몰입권 대기</span>
+              </div>
+              <div id="flowMatrix" class="flow-box"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Buddhist Log</p>
+                  <h3>탐·진·치 기록</h3>
+                </div>
+                <span class="status-pill">0-3점</span>
+              </div>
+              <div id="buddhistLog" class="stack"></div>
             </article>
           </section>
 
@@ -124,7 +320,7 @@
           </section>
         </section>
 
-        <section class="view" id="view-feedback">
+        <section class="view" id="view-evolve">
           <section class="grid two">
             <article class="panel">
               <div class="panel-head">
@@ -142,74 +338,42 @@
             <article class="panel">
               <div class="panel-head">
                 <div>
+                  <p class="eyebrow">Daewoon Timeline</p>
+                  <h3>대운 리스크 지도</h3>
+                </div>
+                <span class="status-pill">장기 운용</span>
+              </div>
+              <div id="daewoonTimeline" class="timeline"></div>
+            </article>
+          </section>
+
+          <section class="grid two">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
                   <p class="eyebrow">Behavior Science</p>
                   <h3>시스템 원칙</h3>
                 </div>
               </div>
               <ul class="principle-list" id="sciencePrinciples"></ul>
             </article>
-          </section>
-        </section>
 
-        <section class="view" id="view-grand">
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Grand Plan Snapshot</p>
-                <h3>현재 목표 지도</h3>
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">System Status</p>
+                  <h3>보안·백업·배포 상태</h3>
+                </div>
+                <button class="ghost-btn" id="refreshSettingsBtn">새로고침</button>
               </div>
-              <span class="status-pill" id="goalReviewStatus">업데이트 대기</span>
-            </div>
-            <div id="grandPlanSnapshot" class="goal-grid"></div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Side Module</p>
-                <h3>만다라트: The One 9x9 지도</h3>
+              <div id="settingsStatus" class="settings-status"></div>
+              <div class="security-note">
+                <strong>공개 URL 원칙</strong>
+                <span>앱 껍데기만 공개하고, 개인 기록은 각 기기의 브라우저 저장소에 둔다. 여러 기기에서 쓰려면 암호화 백업으로 옮긴다.</span>
               </div>
-              <span class="status-pill">목표 시각화</span>
-            </div>
-            <div id="mandaratGrid" class="mandarat-grid"></div>
-          </section>
-
-          <section class="grid two">
-            <article class="panel">
-              <p class="eyebrow">Ikigai Check</p>
-              <h3>목적 검증</h3>
-              <div id="ikigaiList" class="stack"></div>
-            </article>
-            <article class="panel">
-              <p class="eyebrow">Napoleon Hill Sidecar</p>
-              <h3>신념 강화</h3>
-              <div id="hillModule" class="stack"></div>
-            </article>
-          </section>
-        </section>
-
-        <section class="view" id="view-saju">
-          <section class="grid two">
-            <article class="panel">
-              <p class="eyebrow">Saju Priority</p>
-              <h3>개운 우선순위</h3>
-              <div id="gaeunList" class="rank-list"></div>
-            </article>
-            <article class="panel">
-              <p class="eyebrow">Buddhist Log</p>
-              <h3>탐·진·치 기록</h3>
-              <div id="buddhistLog" class="stack"></div>
             </article>
           </section>
 
-          <section class="panel">
-            <p class="eyebrow">Resource Frame</p>
-            <h3>지원 레버리지와 운영 기준</h3>
-            <div id="resourceList" class="constraint-grid"></div>
-          </section>
-        </section>
-
-        <section class="view" id="view-export">
           <section class="grid two">
             <article class="panel">
               <div class="panel-head">
@@ -221,6 +385,7 @@
               </div>
               <textarea id="markdownExport" class="export-box" spellcheck="false"></textarea>
             </article>
+
             <article class="panel">
               <p class="eyebrow">Data Portability</p>
               <h3>백업과 복원</h3>
@@ -240,13 +405,13 @@
                   <input type="file" id="importEncryptedInput" accept="application/json">
                 </label>
               </div>
-              <p class="muted">공개 배포해도 개인 데이터는 이 브라우저의 localStorage에만 저장된다. 여러 기기에서 쓰려면 암호화 백업을 내려받아 다른 기기에서 복원한다.</p>
+              <p class="muted">여러 기기에서 쓰려면 이 화면에서 암호화 백업을 만들고, 다른 기기에서 복원한다.</p>
               <div class="security-box">
                 <p class="eyebrow">Local Security</p>
                 <h3>앱 잠금</h3>
                 <label class="field-label">
                   새 잠금 PIN
-                  <input class="text-input" id="newLockPassphrase" type="password" inputmode="numeric" autocomplete="new-password" maxlength="4" placeholder="4자리">
+                  <input class="text-input pin-input" id="newLockPassphrase" type="password" inputmode="numeric" autocomplete="new-password" maxlength="4" placeholder="4자리">
                 </label>
                 <div class="button-row">
                   <button class="primary-btn" id="setLockBtn">잠금 설정/변경</button>
@@ -254,50 +419,6 @@
                 </div>
                 <p class="muted" id="lockStatus">이 기기 전용 잠금이다. 암호는 저장하지 않고 해시만 저장한다.</p>
               </div>
-            </article>
-          </section>
-        </section>
-
-        <section class="view" id="view-settings">
-          <section class="grid two">
-            <article class="panel">
-              <div class="panel-head">
-                <div>
-                  <p class="eyebrow">System Status</p>
-                  <h3>보안·백업·배포 상태</h3>
-                </div>
-                <button class="ghost-btn" id="refreshSettingsBtn">새로고침</button>
-              </div>
-              <div id="settingsStatus" class="settings-status"></div>
-              <div class="security-note">
-                <strong>공개 URL 원칙</strong>
-                <span>앱 껍데기만 공개하고, 개인 기록은 각 기기의 브라우저 저장소에 둔다. 여러 기기에서 쓰려면 암호화 백업으로 옮긴다.</span>
-              </div>
-            </article>
-
-            <article class="panel">
-              <div class="panel-head">
-                <div>
-                  <p class="eyebrow">Adaptive Targets</p>
-                  <h3>목표 난이도 수동 조정</h3>
-                </div>
-                <button class="ghost-btn" id="resetTargetsBtn">초기값</button>
-              </div>
-              <div id="targetSettings" class="target-settings"></div>
-              <label class="switch-row">
-                <span>
-                  <strong>저널 1문항 모드</strong>
-                  <small>기록이 밀릴 때 진입 마찰을 낮춘다.</small>
-                </span>
-                <input type="checkbox" id="oneQuestionToggle">
-              </label>
-              <label class="switch-row">
-                <span>
-                  <strong>아침 집중 잠금</strong>
-                  <small>60초 체크 전에는 피드백·Grand Plan·명리 탭을 잠근다.</small>
-                </span>
-                <input type="checkbox" id="morningFocusToggle">
-              </label>
             </article>
           </section>
 
@@ -317,11 +438,39 @@
               <input class="number-input" type="number" min="3" max="30" step="1" id="goalCadenceInput">
             </label>
             <div id="goalEditor" class="goal-editor"></div>
-            <div class="button-row">
-              <button class="ghost-btn" id="resetGrandPlanBtn">기본 목표 복원</button>
-              <button class="primary-btn" id="copyGoalUpdateBriefBtn">업데이트 질문 복사</button>
+            <div class="settings-split">
+              <article>
+                <div class="panel-head slim">
+                  <div>
+                    <p class="eyebrow">Adaptive Targets</p>
+                    <h3>목표 난이도</h3>
+                  </div>
+                  <button class="ghost-btn" id="resetTargetsBtn">초기값</button>
+                </div>
+                <div id="targetSettings" class="target-settings"></div>
+                <label class="switch-row">
+                  <span>
+                    <strong>저널 1문항 모드</strong>
+                    <small>기록이 밀릴 때 진입 마찰을 낮춘다.</small>
+                  </span>
+                  <input type="checkbox" id="oneQuestionToggle">
+                </label>
+                <label class="switch-row">
+                  <span>
+                    <strong>아침 집중 잠금</strong>
+                    <small>60초 체크 전에는 전략과 진화 탭을 잠근다.</small>
+                  </span>
+                  <input type="checkbox" id="morningFocusToggle">
+                </label>
+              </article>
+              <article>
+                <div class="button-row">
+                  <button class="ghost-btn" id="resetGrandPlanBtn">기본 목표 복원</button>
+                  <button class="primary-btn" id="copyGoalUpdateBriefBtn">업데이트 질문 복사</button>
+                </div>
+                <textarea id="goalUpdateBrief" class="export-box compact" spellcheck="false"></textarea>
+              </article>
             </div>
-            <textarea id="goalUpdateBrief" class="export-box compact" spellcheck="false"></textarea>
           </section>
 
           <section class="panel">

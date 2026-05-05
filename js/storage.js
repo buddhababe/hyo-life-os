@@ -30,9 +30,17 @@
     };
   }
 
+  function defaultStrategy() {
+    return {
+      woop: clone(window.LIFE_OS_SEED.woopDefault),
+      lastMethodReviewAt: null,
+      methodReviewCadenceDays: 30
+    };
+  }
+
   function createInitialState() {
     return {
-      version: 1,
+      version: 2,
       createdAt: new Date().toISOString(),
       lastSavedAt: null,
       settings: {
@@ -44,6 +52,7 @@
         lastPlainBackupAt: null
       },
       grandPlan: defaultGrandPlan(),
+      strategy: defaultStrategy(),
       entries: {},
       reviews: [],
       goalUpdates: [],
@@ -72,6 +81,14 @@
         grandPlan: {
           ...defaultGrandPlan(),
           ...(parsed.grandPlan || {})
+        },
+        strategy: {
+          ...defaultStrategy(),
+          ...(parsed.strategy || {}),
+          woop: {
+            ...defaultStrategy().woop,
+            ...((parsed.strategy && parsed.strategy.woop) || {})
+          }
         },
         goalUpdates: parsed.goalUpdates || [],
         adjustments: parsed.adjustments || []
@@ -113,6 +130,11 @@
         overheated: false,
         attachment: false
       },
+      flow: {
+        challenge: 3,
+        skill: 3,
+        oneThing: ""
+      },
       journal: {
         forward: "",
         overheat: "",
@@ -124,10 +146,11 @@
 
   function normalizeEntry(entry) {
     const fresh = createEntry(entry.date || todayKey());
-    const oldSupportRiskTitle = ["돈·계약·공공", "지원 리스크 하나 문서화"].join("");
+    const oldRiskTitle = ["돈·계약·공공", "리스크 하나 문서화"].join("");
     entry.morning = { ...fresh.morning, ...(entry.morning || {}) };
     entry.habits = { ...fresh.habits, ...(entry.habits || {}) };
     entry.buddhist = { ...fresh.buddhist, ...(entry.buddhist || {}) };
+    entry.flow = { ...fresh.flow, ...(entry.flow || {}) };
     entry.journal = { ...fresh.journal, ...(entry.journal || {}) };
     if (!Array.isArray(entry.missions) || entry.missions.length !== 3) {
       entry.missions = fresh.missions;
@@ -135,12 +158,13 @@
     entry.missions = entry.missions.map((mission) => ({
       ...mission,
       title:
-        mission.title === oldSupportRiskTitle
-          ? "돈·계약·지원 레버리지 운영조건 하나 문서화"
+        mission.title === oldRiskTitle || (mission.title || "").includes("지원")
+          ? "현금흐름·계약·학습시간 운영조건 하나 문서화"
           : mission.title,
       ifAction:
-        mission.ifAction === "오늘의 미확정 리스크를 한 줄로 적고 다음 확인 행동을 쓴다"
-          ? "오늘의 혜택 유지 조건 또는 미확정 리스크를 한 줄로 적고 다음 확인 행동을 쓴다"
+        mission.ifAction === "오늘의 미확정 리스크를 한 줄로 적고 다음 확인 행동을 쓴다" ||
+        (mission.ifAction || "").includes("혜택")
+          ? "오늘의 미확정 조건을 한 줄로 적고 다음 확인 행동을 쓴다"
           : mission.ifAction
     }));
     return entry;

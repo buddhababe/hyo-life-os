@@ -41,9 +41,9 @@ foreach ($asset in @("./js/auth.js", "./js/crypto.js", "./manifest.json")) {
 }
 
 $index = Get-Content -Encoding UTF8 (Join-Path $root "index.html") -Raw
-foreach ($marker in @("view-settings", "settingsStatus", "deployChecklist", "goalEditor", "resourceList")) {
+foreach ($marker in @("view-radar", "view-vision", "view-strategy", "view-today", "view-evolve", "settingsStatus", "deployChecklist", "goalEditor", "resourceList")) {
   if ($index -notlike "*$marker*") {
-    throw "Settings surface marker missing: $marker"
+    throw "Life OS surface marker missing: $marker"
   }
 }
 
