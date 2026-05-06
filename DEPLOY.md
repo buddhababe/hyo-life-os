@@ -96,6 +96,12 @@ After opening the deployed app on a device, set a local app lock in the Export t
 
 The current static app can request browser notification permission while it is open. Reliable background reminders need Web Push.
 
+Detailed local setup notes:
+
+```text
+docs/NOTIFICATIONS.md
+```
+
 For Web Push:
 
 - The app must be served over HTTPS.

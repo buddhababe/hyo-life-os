@@ -19,6 +19,7 @@ README.md
 STATUS.md
 LIVE_METHOD_MONITOR.md
 docs/DECISIONS.md
+docs/NOTIFICATIONS.md
 ```
 
 Run locally:
@@ -89,7 +90,7 @@ After deploy, check:
 
 ```powershell
 $r = Invoke-WebRequest -UseBasicParsing "https://buddhababe.github.io/hyo-life-os/sw.js?cb=$(Get-Date -Format yyyyMMddHHmmss)"
-$r.Content.Contains("hyo-life-os-v1-8")
+$r.Content.Contains("hyo-life-os-v1-9")
 ```
 
 Update the cache version in `sw.js` when deploy-impacting assets change.
@@ -99,16 +100,16 @@ Update the cache version in `sw.js` when deploy-impacting assets change.
 - App state key: `hyo-life-os-state-v1`
 - App lock key: `hyo-life-os-lock-v1`
 - Current state version inside stored JSON: `2`
+- Static method update candidates: `data/method-updates.json`
 - Existing users may have older localStorage state. Normalize rather than erase.
 
 ## Good Next Tasks
 
-1. Add a static method update inbox fed by a JSON file.
-2. Add a scheduled GitHub Actions digest for research/tool changes.
-3. Add better mobile Evolve layout.
-4. Add a monthly review screen.
-5. Add streak recovery mode.
-6. Add Web Push only after the privacy model is explicit.
+1. Add a scheduled GitHub Actions digest for research/tool changes.
+2. Add better mobile Evolve layout.
+3. Add a monthly review screen.
+4. Add streak recovery mode.
+5. Add Web Push only after the privacy model is explicit.
 
 ## Bad Next Tasks
 

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "woop-friction-log-v1",
+    "date": "2026-05-06",
+    "domain": "Behavior Science",
+    "title": "WOOP after-action friction log",
+    "summary": "After a mission fails, record the exact obstacle and shrink the next if-then plan by one step.",
+    "evidence": "Established implementation-intention and feedback-loop practice; low risk and easy to test.",
+    "experiment": "For 7 days, add one friction sentence after any missed TOP 3 mission."
+  },
+  {
+    "id": "generic-pwa-reminder-copy-v1",
+    "date": "2026-05-06",
+    "domain": "PWA Operations",
+    "title": "Keep reminder payloads generic",
+    "summary": "Notification text should avoid private goals or sensitive context because it can appear on a lock screen.",
+    "evidence": "Privacy-preserving default for public-url, local-first PWA use.",
+    "experiment": "Use generic morning and evening reminder copy until Web Push privacy rules are written."
+  },
+  {
+    "id": "monthly-method-adoption-gate-v1",
+    "date": "2026-05-06",
+    "domain": "Method Radar",
+    "title": "Monthly adoption gate",
+    "summary": "New methods should enter the operating system only after a review, not immediately after discovery.",
+    "evidence": "Reduces system thrash and keeps the main behavior loop stable.",
+    "experiment": "Only mark one method as adoption-ready per monthly review."
+  }
+]

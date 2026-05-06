@@ -48,6 +48,7 @@ http://127.0.0.1:5183/
 최신 논문, 공식 문서, 도구 변화를 주기적으로 감시하는 외부 모니터는 별도 레이어로 붙입니다.
 
 - 설계 문서: `LIVE_METHOD_MONITOR.md`
+- 알림 설정 문서: `docs/NOTIFICATIONS.md`
 - v1 앱은 실행과 기록에 집중합니다.
 - 모니터는 PubMed/OpenAlex/공식 문서/RSS를 주기적으로 확인하고 업데이트 후보를 만듭니다.
 - 후보는 자동 반영하지 않고 주간/월간 리뷰에서 채택합니다.
@@ -78,7 +79,7 @@ http://127.0.0.1:5183/
 
 ## Isolation
 
-- Service worker cache: `hyo-life-os-v1-8`
+- Service worker cache: `hyo-life-os-v1-9`
 - localStorage key: `hyo-life-os-state-v1`
 - Suggested dev port: `5183`
 - App lock key: `hyo-life-os-lock-v1`

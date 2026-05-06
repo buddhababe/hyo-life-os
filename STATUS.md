@@ -16,7 +16,7 @@ http://127.0.0.1:5183/
 ## Verified
 
 - Manifest parses as JSON.
-- Service worker cache is isolated as `hyo-life-os-v1-8`.
+- Service worker cache is isolated as `hyo-life-os-v1-9`.
 - localStorage key is isolated as `hyo-life-os-state-v1`.
 - Sensitive public terms verifier passes.
 - Headless Edge smoke screenshot reaches required first-launch PIN setup.
@@ -26,6 +26,7 @@ http://127.0.0.1:5183/
 - Isolated from `life-os/`.
 - Rebuilt navigation as `Radar -> Vision -> Strategy -> Today -> Evolve`.
 - Radar tab with world signals, method monitor, idea sandbox, and skill forge.
+- Static Method Update Inbox fed by `data/method-updates.json`.
 - Vision tab with The Slide, Ikigai, importance reduction, and operating doctrine.
 - Strategy tab with Grand Plan, WOOP, Mandarat, weighted gaeun priorities, and residence/career/person criteria.
 - Today tab with Morning Gate, TOP 3, core habits, Flow Matrix, Buddhist log, journal, and cold coach.
@@ -42,6 +43,7 @@ http://127.0.0.1:5183/
 - Morning focus lock for forcing the 60-second check-in before strategy/evolve surfaces.
 - Grand Plan editor and weekly update prompt brief.
 - Live Method Monitor architecture added for external research/tool updates.
+- Local notification setup guide for Windows/browser behavior.
 - GitHub Pages workflow for public access.
 - Verification and serve scripts.
 - Security notes and deployment checklist.
@@ -54,8 +56,7 @@ http://127.0.0.1:5183/
 ## Next Safe Steps
 
 1. Deploy as HTTPS PWA.
-2. Add local notification instructions with Windows/browser setup notes.
-3. Add Web Push backend only after deployment.
-4. Add weekly methodology monitor digest via GitHub Actions.
-5. Add visual monthly review and streak recovery mode.
-6. Add optional cloud sync later only if the security model is explicit.
+2. Add Web Push backend only after deployment.
+3. Add scheduled methodology monitor digest via GitHub Actions.
+4. Add visual monthly review and streak recovery mode.
+5. Add optional cloud sync later only if the security model is explicit.

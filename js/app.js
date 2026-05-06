@@ -2,6 +2,7 @@
   const state = window.LifeStorage.loadState();
   const today = window.LifeStorage.todayKey();
   const entry = window.LifeStorage.getEntry(state, today);
+  let methodUpdates = [];
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -49,6 +50,7 @@
       woop: clone(window.LIFE_OS_SEED.woopDefault),
       lastMethodReviewAt: null,
       methodReviewCadenceDays: 30,
+      methodUpdateDecisions: {},
       ...(state.strategy || {})
     };
     state.strategy.woop = {
@@ -61,6 +63,7 @@
       oneThing: "",
       ...(entry.flow || {})
     };
+    state.strategy.methodUpdateDecisions = state.strategy.methodUpdateDecisions || {};
   }
 
   function showAuthOverlay(mode = "unlock") {
@@ -229,6 +232,40 @@
         `
       )
       .join("");
+    const decisions = state.strategy.methodUpdateDecisions || {};
+    $("#methodInboxStatus").textContent = methodUpdates.length
+      ? `${methodUpdates.length}개 후보`
+      : "후보 없음";
+    $("#methodUpdateInbox").innerHTML = methodUpdates.length
+      ? methodUpdates
+        .map((item) => {
+          const decision = decisions[item.id] || "review";
+          return `
+            <article class="update-card" data-method-update="${escapeHtml(item.id)}">
+              <div>
+                <small>${escapeHtml(item.date)} · ${escapeHtml(item.domain)}</small>
+                <strong>${escapeHtml(item.title)}</strong>
+                <span>${escapeHtml(item.summary)}</span>
+                <span>${escapeHtml(item.evidence)}</span>
+                <b>실험: ${escapeHtml(item.experiment)}</b>
+              </div>
+              <div class="update-actions" aria-label="Method update decision">
+                <button class="ghost-btn ${decision === "adopt" ? "is-selected" : ""}" data-method-decision="adopt" data-method-id="${escapeHtml(item.id)}">채택 후보</button>
+                <button class="ghost-btn ${decision === "defer" ? "is-selected" : ""}" data-method-decision="defer" data-method-id="${escapeHtml(item.id)}">보류</button>
+              </div>
+            </article>
+          `;
+        })
+        .join("")
+      : `<div class="mini-block"><span>아직 로드된 업데이트 후보가 없습니다.</span></div>`;
+    $$("[data-method-decision]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.strategy.methodUpdateDecisions[button.dataset.methodId] = button.dataset.methodDecision;
+        saveOnly();
+        renderRadar();
+        renderExport();
+      });
+    });
     $("#ideaPipeline").innerHTML = window.LIFE_OS_SEED.ideaPipeline
       .map(
         (column) => `
@@ -718,6 +755,9 @@
 
 ## Method Radar
 - 방법론 업데이트 상태: ${methodReviewInfo().label}
+- Method Update Inbox: ${methodUpdates
+      .map((item) => `${item.title} [${state.strategy.methodUpdateDecisions[item.id] || "review"}]`)
+      .join(" / ") || "후보 없음"}
 - 이번 주 외부 감지: AI 자동화, 법·규제, 금리·신용, 명리 리스크
 
 ## WOOP
@@ -1208,6 +1248,19 @@ ${habitLines}
     }
   }
 
+  async function loadMethodUpdates() {
+    try {
+      const response = await fetch("./data/method-updates.json", { cache: "no-cache" });
+      if (!response.ok) throw new Error("Method updates fetch failed");
+      methodUpdates = await response.json();
+    } catch (error) {
+      console.warn("Method update inbox unavailable", error);
+      methodUpdates = [];
+    }
+    renderRadar();
+    renderExport();
+  }
+
   ensureStateShape();
   wireEvents();
   renderAll();
@@ -1216,4 +1269,5 @@ ${habitLines}
     showAuthOverlay();
   }
   registerServiceWorker();
+  loadMethodUpdates();
 })();

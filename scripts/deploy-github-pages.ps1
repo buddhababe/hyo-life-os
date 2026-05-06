@@ -1,10 +1,10 @@
-$ErrorActionPreference = "Stop"
-
 param(
   [string]$Owner = "buddhababe",
   [string]$Repo = "hyo-life-os",
   [switch]$Private
 )
+
+$ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 

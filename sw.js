@@ -1,8 +1,9 @@
-const CACHE_NAME = "hyo-life-os-v1-8";
+const CACHE_NAME = "hyo-life-os-v1-9";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
+  "./data/method-updates.json",
   "./css/style.css",
   "./js/data.js",
   "./js/storage.js",

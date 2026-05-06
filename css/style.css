@@ -358,7 +358,8 @@ button {
 .goal-editor,
 .target-settings,
 .skill-list,
-.timeline {
+.timeline,
+.update-inbox {
   display: grid;
   gap: 10px;
 }
@@ -374,6 +375,7 @@ button {
 
 .signal-card,
 .mini-block,
+.update-card,
 .kanban-col,
 .skill-row,
 .goal-card,
@@ -396,12 +398,48 @@ button {
 
 .signal-card,
 .mini-block,
+.update-card,
 .kanban-col,
 .goal-card,
 .constraint-item,
 .timeline-item,
 .setting-card {
   padding: 12px;
+}
+
+.update-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.update-card > div:first-child {
+  display: grid;
+  gap: 6px;
+}
+
+.update-card small,
+.update-card span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.update-card b {
+  color: var(--gold);
+}
+
+.update-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ghost-btn.is-selected {
+  border-color: rgba(102, 227, 208, 0.54);
+  color: var(--teal);
+  background: rgba(102, 227, 208, 0.1);
 }
 
 .signal-card {
@@ -975,8 +1013,13 @@ select {
   }
 
   .skill-row,
-  .timeline-item {
+  .timeline-item,
+  .update-card {
     grid-template-columns: 1fr;
+  }
+
+  .update-actions {
+    justify-content: flex-start;
   }
 
   .rank-row {
