@@ -16,7 +16,7 @@ http://127.0.0.1:5183/
 ## Verified
 
 - Manifest parses as JSON.
-- Service worker cache is isolated as `hyo-life-os-v1-9`.
+- Service worker cache is isolated as `hyo-life-os-v1-10`.
 - localStorage key is isolated as `hyo-life-os-state-v1`.
 - Sensitive public terms verifier passes.
 - Headless Edge smoke screenshot reaches required first-launch PIN setup.
@@ -41,6 +41,8 @@ http://127.0.0.1:5183/
 - Encrypted backup/import for multi-device use.
 - Local app lock for public URL use.
 - Morning focus lock for forcing the 60-second check-in before strategy/evolve surfaces.
+- Visible lock hint and user guide explaining why Strategy/Evolve are gated.
+- Refined Transurfing importance-reduction doctrine.
 - Grand Plan editor and weekly update prompt brief.
 - Live Method Monitor architecture added for external research/tool updates.
 - Local notification setup guide for Windows/browser behavior.

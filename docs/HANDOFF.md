@@ -20,6 +20,7 @@ STATUS.md
 LIVE_METHOD_MONITOR.md
 docs/DECISIONS.md
 docs/NOTIFICATIONS.md
+docs/USER_GUIDE.md
 ```
 
 Run locally:
@@ -90,7 +91,7 @@ After deploy, check:
 
 ```powershell
 $r = Invoke-WebRequest -UseBasicParsing "https://buddhababe.github.io/hyo-life-os/sw.js?cb=$(Get-Date -Format yyyyMMddHHmmss)"
-$r.Content.Contains("hyo-life-os-v1-9")
+$r.Content.Contains("hyo-life-os-v1-10")
 ```
 
 Update the cache version in `sw.js` when deploy-impacting assets change.

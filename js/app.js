@@ -179,11 +179,16 @@
   function renderTabAccess() {
     const locked = state.settings.morningFocusLock && !entry.morning.done;
     const lockedTabs = new Set(["strategy", "evolve"]);
+    const hint = $("#tabLockHint");
+    hint.hidden = !locked;
+    hint.innerHTML = locked
+      ? `<strong>설계·수정 잠금</strong><span>아침 집중 잠금이 켜져 있습니다. Today에서 60초 Morning Gate를 완료하면 Strategy와 Evolve가 열립니다.</span>`
+      : "";
     $$(".tab").forEach((tab) => {
       const isLocked = locked && lockedTabs.has(tab.dataset.tab);
       tab.disabled = isLocked;
       tab.classList.toggle("is-locked", isLocked);
-      tab.title = isLocked ? "아침 60초 체크 후 열림" : "";
+      tab.title = isLocked ? "Today의 Morning Gate 60초 체크인 완료 후 열림" : "";
     });
     const active = $(".tab.is-active");
     if (active && active.disabled) {

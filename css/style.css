@@ -223,6 +223,27 @@ button {
   opacity: 0.42;
 }
 
+.focus-lock-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(246, 196, 81, 0.42);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin: 0 0 14px;
+  color: var(--gold);
+  background: rgba(246, 196, 81, 0.08);
+}
+
+.focus-lock-hint[hidden] {
+  display: none;
+}
+
+.focus-lock-hint span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .primary-btn,
 .file-btn,
 .ghost-btn {
@@ -1004,6 +1025,11 @@ select {
 
   .top-actions {
     justify-content: flex-start;
+  }
+
+  .focus-lock-hint {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .score-dial {

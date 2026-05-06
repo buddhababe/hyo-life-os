@@ -18,6 +18,7 @@
 4. `LIVE_METHOD_MONITOR.md`
 5. `docs/HANDOFF.md`
 6. `docs/DECISIONS.md`
+7. `docs/USER_GUIDE.md`
 
 공개 repo에는 개발에 필요한 지침만 둡니다. 개인 입력 기록과 민감한 세부 맥락은 앱의 로컬 저장소 또는 암호화 백업으로 관리합니다.
 
@@ -49,6 +50,7 @@ http://127.0.0.1:5183/
 
 - 설계 문서: `LIVE_METHOD_MONITOR.md`
 - 알림 설정 문서: `docs/NOTIFICATIONS.md`
+- 사용자 가이드: `docs/USER_GUIDE.md`
 - v1 앱은 실행과 기록에 집중합니다.
 - 모니터는 PubMed/OpenAlex/공식 문서/RSS를 주기적으로 확인하고 업데이트 후보를 만듭니다.
 - 후보는 자동 반영하지 않고 주간/월간 리뷰에서 채택합니다.
@@ -79,7 +81,7 @@ http://127.0.0.1:5183/
 
 ## Isolation
 
-- Service worker cache: `hyo-life-os-v1-9`
+- Service worker cache: `hyo-life-os-v1-10`
 - localStorage key: `hyo-life-os-state-v1`
 - Suggested dev port: `5183`
 - App lock key: `hyo-life-os-lock-v1`

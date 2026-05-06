@@ -1,4 +1,4 @@
-const CACHE_NAME = "hyo-life-os-v1-9";
+const CACHE_NAME = "hyo-life-os-v1-10";
 const ASSETS = [
   "./",
   "./index.html",
